@@ -1,0 +1,27 @@
+Type: AWS::DynamoDB::Table
+DeletionPolicy : Retain
+Properties:
+  TableName: ${self:custom.DB_PREFIX}-Families
+  AttributeDefinitions:
+    - AttributeName: id
+      AttributeType: S
+    - AttributeName: familyEmail
+      AttributeType: S
+  KeySchema:
+    - AttributeName: id
+      KeyType: HASH
+  ProvisionedThroughput:
+    ReadCapacityUnits: 5
+    WriteCapacityUnits: 5
+  GlobalSecondaryIndexes:
+    - IndexName: familyEmail-id-index
+      KeySchema:
+        - AttributeName: familyEmail
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      Projection:
+        ProjectionType: ALL
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5

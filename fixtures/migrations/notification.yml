@@ -1,0 +1,30 @@
+Type: AWS::DynamoDB::Table
+DependsOn: JobDynamoDBTable
+DeletionPolicy : Retain
+Properties:
+  TableName: ${self:custom.DB_PREFIX}-Notifications
+  AttributeDefinitions:
+    - AttributeName: userId
+      AttributeType: S
+    - AttributeName: created
+      AttributeType: S
+    - AttributeName: id
+      AttributeType: S
+  KeySchema:
+    - AttributeName: userId
+      KeyType: HASH
+    - AttributeName: created
+      KeyType: RANGE
+  ProvisionedThroughput:
+    ReadCapacityUnits: 5
+    WriteCapacityUnits: 5
+  GlobalSecondaryIndexes:
+    - IndexName: id-index
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      Projection:
+        ProjectionType: ALL
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5

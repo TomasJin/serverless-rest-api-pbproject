@@ -1,0 +1,8 @@
+name,given_name,family_name,middle_name,nickname,preferred_username,profile,picture,website,email,email_verified,gender,birthdate,zoneinfo,locale,phone_number,phone_number_verified,address,updated_at,custom:type,cognito:mfa_enabled,cognito:username
+James,,,,,james,,,,jameslin@gmx.hk,TRUE,,,,,+12345550100,TRUE,,,parent,FALSE,james-randomstring
+James Boy,,,,,james_boy,,,,jameslin@gmx.hk,TRUE,,,,,+12345550100,TRUE,,,child,FALSE,james_boy-randomstring
+James Girl,,,,,james_girl,,,,jameslin@gmx.hk,TRUE,,,,,+12345550100,TRUE,,,chlld,FALSE,james_girl-randomstring
+Reji,,,,,reji,,,,cloudphoenix@gmx.com,TRUE,,,,,+12345550101,TRUE,,,parent,FALSE,reji-randomstring
+Reji Boy,,,,,reji_boy,,,,cloudphoenix@gmx.com,TRUE,,,,,+12345550101,TRUE,,,child,FALSE,reji_boy-randomstring
+Reji Girl,,,,,reji_girl,,,,cloudphoenix@gmx.com,TRUE,,,,,+12345550101,TRUE,,,chlld,FALSE,reji_girl-randomstring
+Jane,,,,,james_mom,,,,jameslin@gmx.com,TRUE,,,,,+12345550102,TRUE,,,parent,FALSE,james_mom-randomstring

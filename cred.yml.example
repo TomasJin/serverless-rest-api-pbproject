@@ -1,0 +1,4 @@
+dev:
+  SEND_IN_BLUE: xxxxxxxxxxxxxxxx
+prod:
+  SEND_IN_BLUE: xxxxxxxxxxxxxxxx

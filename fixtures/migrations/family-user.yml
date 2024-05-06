@@ -1,0 +1,30 @@
+Type: AWS::DynamoDB::Table
+DependsOn: FamilyDynamoDBTable
+DeletionPolicy : Retain
+Properties:
+  TableName: ${self:custom.DB_PREFIX}-FamiliesUsers
+  AttributeDefinitions:
+    - AttributeName: familyId
+      AttributeType: S
+    - AttributeName: userId
+      AttributeType: S
+  KeySchema:
+    - AttributeName: familyId
+      KeyType: HASH
+    - AttributeName: userId
+      KeyType: RANGE
+  ProvisionedThroughput:
+    ReadCapacityUnits: 5
+    WriteCapacityUnits: 5
+  GlobalSecondaryIndexes:
+    - IndexName: userId-familyId-index
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: familyId
+          KeyType: RANGE
+      Projection:
+        ProjectionType: ALL
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5

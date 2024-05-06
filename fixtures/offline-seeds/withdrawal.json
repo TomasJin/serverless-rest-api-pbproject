@@ -1,0 +1,17 @@
+[{
+    "id": "c796d733-9779-45c5-a130-20fd1fd0b652",
+    "familyId": "287ef3f0-d79f-11e7-a2eb-bb9bea49fda2",
+    "childUserId": "0f92d139-86b5-41a9-ad88-25cbadf472ff",
+    "modified": "2017-11-03T09:26:08.196Z",
+    "childUserId__createdTimestamp": "a2f5acbc-6e3e-4acf-b13f-9ea98e474237__1506423488524",
+    "status": "CREATED_BY_CHILD",
+    "_available_status": "CREATED_BY_CHILD, CREATED_BY_PARENT, APPROVED, REJECTED, CANCELED",
+    "amount": 2,
+    "history": [
+      {
+        "status": "CREATED_BY_CHILD",
+        "issuedAt": "1506423488524",
+        "issuedBy": "0f92d139-86b5-41a9-ad88-25cbadf472ff"
+      }
+    ]
+}]

@@ -1,0 +1,40 @@
+Type: AWS::DynamoDB::Table
+DeletionPolicy : Retain
+Properties:
+  TableName: ${self:custom.DB_PREFIX}-WithdrawalRequests
+  AttributeDefinitions:
+    - AttributeName: familyId
+      AttributeType: S
+    - AttributeName: modified
+      AttributeType: S
+    - AttributeName: childUserId__createdTimestamp
+      AttributeType: S
+    - AttributeName: id
+      AttributeType: S
+  KeySchema:
+    - AttributeName: familyId
+      KeyType: HASH
+    - AttributeName: childUserId__createdTimestamp
+      KeyType: RANGE
+  ProvisionedThroughput:
+    ReadCapacityUnits: 5
+    WriteCapacityUnits: 5
+  LocalSecondaryIndexes:
+    - IndexName: familyId-modified-index      # TODO: Possibility of confliction here
+      KeySchema:
+        - AttributeName: familyId
+          KeyType: HASH
+        - AttributeName: modified
+          KeyType: RANGE
+      Projection:
+        ProjectionType: ALL
+  GlobalSecondaryIndexes:
+    - IndexName: id-index
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      Projection:
+        ProjectionType: ALL
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5

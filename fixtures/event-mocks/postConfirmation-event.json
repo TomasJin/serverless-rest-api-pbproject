@@ -1,0 +1,12 @@
+{
+  "userName": "ctes2-1508436214",
+  "userPoolId": "us-east-1_TMmCoPWuF",
+  "request": {
+    "userAttributes": {
+      "custom:type": "child",
+      "name": "ctest2",
+      "preferred_username": "ctest2"
+    }
+  },
+  "response": {}
+}

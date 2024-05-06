@@ -1,0 +1,37 @@
+[{
+    "familyId": "287ef3f0-d79f-11e7-a2eb-bb9bea49fda2",
+    "userId": "a2f5acbc-6e3e-4acf-b13f-9ea98e474237",
+    "created": "2017-11-03T09:26:08.196Z",
+    "userSummary": {
+      "cognito:username": "james-randomstring",
+      "type": "parent"
+    }
+}, {
+    "familyId": "287ef3f0-d79f-11e7-a2eb-bb9bea49fda2",
+    "userId": "0f92d139-86b5-41a9-ad88-25cbadf472ff",
+    "created": "2017-11-03T09:26:08.196Z",
+    "userSummary": {
+      "cognito:username": "james_boy-randomstring",
+      "type": "child",
+      "balance": 10,
+      "completedJobs": 0
+    }
+}, {
+    "familyId": "287ef3f0-d79f-11e7-a2eb-bb9bea49fda2",
+    "userId": "05c279c2-483f-4937-bbd6-eccd617e0fca",
+    "created": "2017-11-03T09:26:08.196Z",
+    "userSummary": {
+      "cognito:username": "james_girl-randomstring",
+      "type": "child",
+      "balance": 10,
+      "completedJobs": 0
+    }
+}, {
+    "familyId": "287ef3f0-d79f-11e7-a2eb-bb9bea49fda2",
+    "userId": "12baea9f-314a-4e12-9549-e81727750ff9",
+    "created": "2017-11-03T09:26:08.196Z",
+    "userSummary": {
+      "cognito:username": "james_mom-randomstring",
+      "type": "parent"
+    }
+}]

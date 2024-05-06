@@ -1,0 +1,15 @@
+{
+  "userName": "james-funnyrandom",
+  "userPoolId": "us-east-1_TMmCoPWuF",
+  "request": {
+    "userAttributes": {
+      "custom:type": "parent",
+      "name": "james",
+      "email": "ptest1000@mailinator.com"
+    },
+    "validationData": {
+      "pureUserName": "ptest123213"
+    }
+  },
+  "response": {}
+}

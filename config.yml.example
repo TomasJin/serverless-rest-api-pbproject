@@ -1,0 +1,24 @@
+dev:
+  DB_PREFIX: dev
+  COGNITO_POOL_ARN: arn:aws:cognito-idp:us-east-1:xxxxxxxxxxxx:userpool/us-east-1_xxxxxxxxx
+  COGNITO_POOL_ID: us-east-1_xxxxxxxxx
+  ERROR_LEVEL: VERBOSE
+  SNS_NOTI_TRIGGER_ARN: arn:aws:sns:us-east-1:xxxxxxxxxxxx:pbapp-dev-noti_trigger-pipe
+  SNS_PUSH_APN_ARN: arn:aws:sns:us-east-1:xxxxxxxxxxxx:app/APNS_SANDBOX/pbapp-Dev
+  #SNS_PUSH_APN_ARN: arn:aws:sns:us-east-1:xxxxxxxxxxxx:app/APNS/pbapp-Prod
+  CUSTOM_DOMAIN_NAME: api-stage.pbox.com
+prod:
+  DB_PREFIX: prod
+  COGNITO_POOL_ARN: arn:aws:cognito-idp:us-east-1:xxxxxxxxxxxx:userpool/us-east-1_xxxxxxxxx
+  COGNITO_POOL_ID: us-east-1_xxxxxxxxx
+  ERROR_LEVEL: CRITICAL
+  SNS_NOTI_TRIGGER_ARN: arn:aws:sns:us-east-1:xxxxxxxxxxxx:pbapp-prod-noti_trigger-pipe
+  SNS_PUSH_APN_ARN: arn:aws:sns:us-east-1:xxxxxxxxxxxx:app/APNS/pbapp-Prod
+  CUSTOM_DOMAIN_NAME: api-prod.pbox.com
+test:
+  DB_PREFIX: test
+  COGNITO_POOL_ARN: arn:aws:cognito-idp:us-east-1:xxxxxxxxxxxx:userpool/us-east-1_xxxxxxxxx
+  COGNITO_POOL_ID: us-east-1_xxxxxxxxx
+  ERROR_LEVEL: NONE
+  SNS_NOTI_TRIGGER_ARN: arn:aws:sns:us-east-1:xxxxxxxxxxxx:pbapp-dev-noti_trigger-pipe
+  SNS_PUSH_APN_ARN: arn:aws:sns:us-east-1:xxxxxxxxxxxx:app/APNS_SANDBOX/pbapp-Dev

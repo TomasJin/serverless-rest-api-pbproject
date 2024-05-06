@@ -1,0 +1,406 @@
+service: pennyboxapp
+
+package:
+  exclude:
+    - node_modules/dynamodb-localhost/**
+    - node_modules/serverless-dynamodb-local/**
+    - node_modules/serverless-offline/**
+    - node_modules/aws-sdk
+
+plugins:
+  - serverless-webpack
+  - serverless-mocha-plugin
+  - serverless-dynamodb-local
+  - serverless-offline # This order is important. should be below of dynamodb-local
+  # - serverless-dynamodb-autoscaling
+  - serverless-plugin-split-stacks
+  - serverless-domain-manager
+  - serverless-plugin-tracing
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  stage: dev # prod
+  region: us-east-1
+  tracing: true # enable xray
+  environment:
+    SERVICE_NAME: ${self:service}
+    REGION: ${self:provider.region}
+    DB_PREFIX: ${self:custom.DB_PREFIX}
+    COGNITO_POOL_ID: ${self:custom.COGNITO_POOL_ID}
+    SEND_IN_BLUE: ${file(./cred.yml):${self:custom.stage}.SEND_IN_BLUE}
+    SNS_NOTI_TRIGGER_ARN: ${file(./config.yml):${self:custom.stage}.SNS_NOTI_TRIGGER_ARN}
+    SNS_PUSH_APN_ARN: ${file(./config.yml):${self:custom.stage}.SNS_PUSH_APN_ARN}
+    ERROR_LEVEL: ${file(./config.yml):${self:custom.stage}.ERROR_LEVEL}
+    AWS_XRAY_CONTEXT_MISSING: LOG_ERROR
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - "dynamodb:*"
+      Resource:
+        - "arn:aws:dynamodb:us-east-1:*"
+    - Effect: Allow
+      Action:
+        - "cognito-idp:*"
+      Resource:
+        - "arn:aws:cognito-idp:us-east-1:*"
+    - Effect: Allow
+      Action:
+        - "SNS:*"
+      Resource:
+        - "arn:aws:sns:us-east-1:*"
+    - Effect: Allow
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+      Resource:
+        - "*"
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  DB_PREFIX: ${self:service}-${file(./config.yml):${self:custom.stage}.DB_PREFIX}
+  COGNITO_POOL_ID: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ID}
+  webpackIncludeModules: true
+  customDomain:
+    domainName: ${file(./config.yml):${self:custom.stage}.CUSTOM_DOMAIN_NAME}
+    basePath: 'v2'
+    stage: ${self:custom.stage}
+    createRoute53Record: true
+  dynamodb:
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+      seed: true
+    seed:
+      domain:
+        sources:
+          - table: ${file(fixtures/migrations/family.yml):Properties.TableName}
+            sources: [./fixtures/offline-seeds/family.json]
+          - table: ${file(fixtures/migrations/family-user.yml):Properties.TableName}
+            sources: [./fixtures/offline-seeds/family-user.json]
+          - table: ${file(fixtures/migrations/job.yml):Properties.TableName}
+            sources: [./fixtures/offline-seeds/job.json]
+          - table: ${file(fixtures/migrations/withdrawal.yml):Properties.TableName}
+            sources: [./fixtures/offline-seeds/withdrawal.json]
+          - table: ${file(fixtures/migrations/transaction.yml):Properties.TableName}
+            sources: [./fixtures/offline-seeds/transaction.json]
+          - table: ${file(fixtures/migrations/notification.yml):Properties.TableName}
+            sources: [./fixtures/offline-seeds/notification.json]
+#  serverless-mocha-plugin:
+#    preTestCommands:
+#      - bash ./test/support/startOffline.sh
+#    postTestCommands:
+#      - bash ./test/support/stopOffline.sh
+  # capacities:
+  #   - table: ${self:custom.DB_PREFIX}-todos
+  #     read:
+  #       minimum: 5        # Minimum read capacity
+  #       maximum: 1000     # Maximum read capacity
+  #       usage: 0.75       # Targeted usage percentage
+  #     write:
+  #       minimum: 40       # Minimum write capacity
+  #       maximum: 200      # Maximum write capacity
+  #       usage: 0.5        # Targeted usage percentage
+
+functions:
+  checkHealth:
+    handler: src/handlers/misc.health
+    tracing: false
+    events:
+      - http:
+          method: GET
+          path: health
+          cors: true
+          #authorizer: aws_iam
+  getMe:
+    handler: src/handlers/user.getMe
+    events:
+      - http:
+          method: GET
+          path: user/me
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  getFamily:
+    handler: src/handlers/family.get
+    events:
+      - http:
+          method: GET
+          path: family/{familyId}
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  createFamily:
+    handler: src/handlers/family.create
+    events:
+      - http:
+          method: POST
+          path: family
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  joinFamily:
+    handler: src/handlers/family.join
+    events:
+      - http:
+          method: POST
+          path: family/join
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  preSignup:
+    handler: src/handlers/signup.preSignup
+    # events:
+    #   - cognitoUserPool:
+    #       pool: PennyboxAppUsers-${self:custom.stage}
+    #       trigger: PreSignUp
+    #       timeout: 5
+
+  postConfirmation:
+    handler: src/handlers/signup.postConfirmation
+    # events:
+    #   - cognitoUserPool:
+    #       pool: PennyboxAppUsers-${self:custom.stage}
+    #       trigger: PostConfirmation
+  getJob:
+    handler: src/handlers/job.get
+    events:
+      - http:
+          method: GET
+          path: job/{jobId}
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  createJob:
+    handler: src/handlers/job.create
+    events:
+      - http:
+          method: POST
+          path: job
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  updateJobStatus:
+    handler: src/handlers/job.updateStatus
+    events:
+      - http:
+          method: PUT
+          path: job/{jobId}/status
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  updateJobSummary:
+    handler: src/handlers/job.updateSummary
+    events:
+      - http:
+          method: PUT
+          path: job/{jobId}/summary
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  listJobsByFamilyMember:
+    handler: src/handlers/job.listByFamilyMember
+    events:
+      - http:
+          method: POST
+          path: user/me/jobs/{familyId}
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+      - http:
+          method: POST
+          path: user/{userId}/jobs/{familyId}
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  listJobsByFamily:
+    handler: src/handlers/job.listByFamily
+    events:
+      - http:
+          method: POST
+          path: family/{familyId}/jobs
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  getWithdrawal:
+    handler: src/handlers/withdrawal.get
+    events:
+      - http:
+          method: GET
+          path: withdrawal/{withdrawalId}
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  createWithdrawal:
+    handler: src/handlers/withdrawal.create
+    events:
+      - http:
+          method: POST
+          path: withdrawal
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  updateWithdrawalStatus:
+    handler: src/handlers/withdrawal.updateStatus
+    events:
+      - http:
+          method: PUT
+          path: withdrawal/{withdrawalId}/status
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  listWithdrawalsByFamilyMember:
+    handler: src/handlers/withdrawal.listByFamilyMember
+    events:
+      - http:
+          method: POST
+          path: user/me/withdrawals/{familyId}
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+      - http:
+          method: POST
+          path: user/{userId}/withdrawals/{familyId}
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  listWithdrawalsByFamily:
+    handler: src/handlers/withdrawal.listByFamily
+    events:
+      - http:
+          method: POST
+          path: family/{familyId}/withdrawals
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  listTransactionsByFamilyMember:
+    handler: src/handlers/transaction.listByFamilyMember
+    events:
+      - http:
+          method: POST
+          path: user/me/transactions/{familyId}
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+      - http:
+          method: POST
+          path: user/{userId}/transactions/{familyId}
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  listTransactionsByFamily:
+    handler: src/handlers/transaction.listByFamily
+    events:
+      - http:
+          method: POST
+          path: family/{familyId}/transactions
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  forgotUsername:
+    handler: src/handlers/remind.forgotUsername
+    events:
+      - http:
+          method: POST
+          path: remind/family_usernames
+          cors: true
+          #authorizer: aws_iam
+  forgotPincode:
+    handler: src/handlers/remind.forgotPincode
+    events:
+      - http:
+          method: POST
+          path: remind/forgot_pincode
+          cors: true
+          #authorizer: aws_iam
+  sendNotification:
+    handler: src/handlers/notification.send
+    events:
+      - sns: ${file(./config.yml):${self:custom.stage}.SNS_NOTI_TRIGGER_ARN}
+  listMyNotifications:
+    handler: src/handlers/notification.listMine
+    events:
+      - http:
+          method: POST
+          path: user/me/notifications
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  markSingleNotificationAsRead:
+    handler: src/handlers/notification.markOneAsRead
+    events:
+      - http:
+          method: PUT
+          path: notification/{notificationId}
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  getUnreadNotificationsCount:
+    handler: src/handlers/notification.getUnreadCount
+    events:
+      - http:
+          method: GET
+          path: notification/unread
+          cors: true
+  addMyDeviceToken:
+    handler: src/handlers/user.addDeviceToken
+    events:
+      - http:
+          method: POST
+          path: user/me/tokens
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+  removeMyDeviceToken:
+    handler: src/handlers/user.removeDeviceToken
+    events:
+      - http:
+          method: DELETE
+          path: user/me/tokens/{token}
+          cors: true
+          authorizer:
+            name: authorizer
+            arn: ${file(./config.yml):${self:custom.stage}.COGNITO_POOL_ARN}
+
+# you can add CloudFormation resource templates here
+# resources:
+#  Resources:
+#    NewResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: my-new-bucket
+#  Outputs:
+#     NewOutput:
+#       Description: "Description for the output"
+#       Value: "Some output value"
+resources:
+  Resources:
+    FamilyDynamoDBTable: ${file(fixtures/migrations/family.yml)}
+    FamilyUserDynamoDBTable: ${file(fixtures/migrations/family-user.yml)}
+    JobDynamoDBTable: ${file(fixtures/migrations/job.yml)}
+    WithdrawalDynamoDBTable: ${file(fixtures/migrations/withdrawal.yml)}
+    TransactionDynamoDBTable: ${file(fixtures/migrations/transaction.yml)}
+    NotificationDynamoDBTable: ${file(fixtures/migrations/notification.yml)}
